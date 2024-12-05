@@ -4,10 +4,7 @@ setup(
     name="pysimular",
     version="0.1.0",
     packages=find_packages(),
-    install_requires=[
-        "requests>=2.25.1",
-        "aiohttp>=3.8.0",
-    ],
+    install_requires=["requests>=2.25.1", "aiohttp>=3.8.0", "pyobjc"],
     author="Simular",
     author_email="support@simular.ai",
     description="Python API for Simular agents",
