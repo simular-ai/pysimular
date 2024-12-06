@@ -1,4 +1,4 @@
-# Pysimular
+# pysimular
 
 Python API client for Simular agents. This package provides a simple and intuitive interface to interact with Simular's agents in different platforms.
 
