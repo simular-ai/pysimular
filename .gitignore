@@ -1,1 +1,3 @@
 pysimular/.DS_Store
+pysimular.egg-info/
+pysimular/__pycache__/

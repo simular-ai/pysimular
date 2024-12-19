@@ -10,11 +10,20 @@ class SimularBrowser:
 
     bundle_id = "com.simular.SimularBrowser"
 
-    def __init__(self, path: str):
+    def __init__(self,
+                 path: str,
+                 anthropic_key: str = '',
+                 planner_model: str = 'claude-3-5-sonnet',
+                 planner_mode: str = 'system_1_2',
+                 max_parallelism: int = 5):
         self.app_path = path
         self.completion_event = threading.Event()
         self.responses = []
         self.images = [] # base64 string
+        self.anthropic_key = anthropic_key
+        self.planner_model = planner_model
+        self.planner_mode = planner_mode
+        self.max_parallelism = max_parallelism
         self._setup_notification_observers()
 
     def _setup_notification_observers(self):
@@ -47,7 +56,8 @@ class SimularBrowser:
     def handleResponse_(self, notification):
         """Handle intermediate responses from the app."""
         print(f"Received response notification: {notification.name()}")
-        print(f"Response userInfo: {notification.userInfo()}")
+        # This print is long due to image data
+        # print(f"Response userInfo: {notification.userInfo()}")
         if notification.userInfo():
             # Try multiple possible keys
             text_response = (notification.userInfo().get('response') or 
@@ -60,7 +70,6 @@ class SimularBrowser:
                     print(f"Response: {text_response}")
                 if image and len(image):
                     self.images.append(image)
-                    print("Received image.")
             else:
                 print(f"No recognized response key in userInfo: {notification.userInfo()}")
 
@@ -84,7 +93,13 @@ class SimularBrowser:
 
     def send_message(self, message):
         center = NSDistributedNotificationCenter.defaultCenter()
-        user_info = {"message": message}
+        user_info = {
+            "message": message,
+            "anthropic_key": self.anthropic_key,
+            "planner_model": self.planner_model,
+            "planner_mode": self.planner_mode,
+            "max_parallelism": self.max_parallelism
+        }
         notification_name = self.bundle_id
         print(f"Sending message with notification name: {notification_name}")
         print(f"Message content: {user_info}")
