@@ -14,6 +14,7 @@ class SimularBrowser:
         self.app_path = path
         self.completion_event = threading.Event()
         self.responses = []
+        self.images = [] # base64 string
         self._setup_notification_observers()
 
     def _setup_notification_observers(self):
@@ -49,12 +50,17 @@ class SimularBrowser:
         print(f"Response userInfo: {notification.userInfo()}")
         if notification.userInfo():
             # Try multiple possible keys
-            response = (notification.userInfo().get('response') or 
-                       notification.userInfo().get('message') or 
-                       notification.userInfo().get('query'))
-            if response:
-                self.responses.append(response)
-                print(f"Response: {response}")
+            text_response = (notification.userInfo().get('response') or 
+                             notification.userInfo().get('message') or 
+                             notification.userInfo().get('query'))
+            image = notification.userInfo().get('image') # base64
+            if text_response or image:
+                if text_response and len(text_response):
+                    self.responses.append(text_response)
+                    print(f"Response: {text_response}")
+                if image and len(image):
+                    self.images.append(image)
+                    print("Received image.")
             else:
                 print(f"No recognized response key in userInfo: {notification.userInfo()}")
 
@@ -94,6 +100,7 @@ class SimularBrowser:
         # Reset state
         self.completion_event.clear()
         self.responses = []
+        self.images = []
 
         if self.is_app_running(self.bundle_id):
             print("App is already running. Sending arguments to the running instance...")
@@ -118,7 +125,7 @@ class SimularBrowser:
         if self.completion_event.is_set():
             print("Completed successfully")
         
-        return self.responses
+        return self.responses, self.images
 
     def __del__(self):
         """Cleanup notification observers."""
