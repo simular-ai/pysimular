@@ -15,7 +15,18 @@ class SimularBrowser:
                  anthropic_key: str = '',
                  planner_model: str = 'claude-3-5-sonnet',
                  planner_mode: str = 'system_1_2',
+                 allow_subtasks: bool = False,
                  max_parallelism: int = 5):
+        """Browser interface for Simular app.
+
+        Args:
+            path (str): Path to the SimularBrowser application
+            anthropic_key (str, optional): Anthropic API key.
+            planner_model (str, optional): Model to use for planning.
+            planner_mode (str, optional): Planning mode to use. Options: system_1, system_2, system_1_2, agent_s1
+            allow_subtasks (bool, optional): Whether to allow subtask creation.
+            max_parallelism (int, optional): Maximum number of parallel tasks.
+        """
         self.app_path = path
         self.completion_event = threading.Event()
         self.responses = []
@@ -23,6 +34,7 @@ class SimularBrowser:
         self.anthropic_key = anthropic_key
         self.planner_model = planner_model
         self.planner_mode = planner_mode
+        self.allow_subtasks = allow_subtasks
         self.max_parallelism = max_parallelism
         self._setup_notification_observers()
 
@@ -98,6 +110,7 @@ class SimularBrowser:
             "anthropic_key": self.anthropic_key,
             "planner_model": self.planner_model,
             "planner_mode": self.planner_mode,
+            "allow_subtasks": self.allow_subtasks,
             "max_parallelism": self.max_parallelism
         }
         notification_name = self.bundle_id
