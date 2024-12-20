@@ -10,10 +10,32 @@ class SimularBrowser:
 
     bundle_id = "com.simular.SimularBrowser"
 
-    def __init__(self, path: str):
+    def __init__(self,
+                 path: str,
+                 anthropic_key: str = '',
+                 planner_model: str = 'claude-3-5-sonnet',
+                 planner_mode: str = 'system_1_2',
+                 allow_subtasks: bool = False,
+                 max_parallelism: int = 5):
+        """Browser interface for Simular app.
+
+        Args:
+            path (str): Path to the SimularBrowser application
+            anthropic_key (str, optional): Anthropic API key.
+            planner_model (str, optional): Model to use for planning.
+            planner_mode (str, optional): Planning mode to use. Options: system_1, system_2, system_1_2, agent_s1
+            allow_subtasks (bool, optional): Whether to allow subtask creation.
+            max_parallelism (int, optional): Maximum number of parallel tasks.
+        """
         self.app_path = path
         self.completion_event = threading.Event()
         self.responses = []
+        self.images = [] # base64 string
+        self.anthropic_key = anthropic_key
+        self.planner_model = planner_model
+        self.planner_mode = planner_mode
+        self.allow_subtasks = allow_subtasks
+        self.max_parallelism = max_parallelism
         self._setup_notification_observers()
 
     def _setup_notification_observers(self):
@@ -46,15 +68,20 @@ class SimularBrowser:
     def handleResponse_(self, notification):
         """Handle intermediate responses from the app."""
         print(f"Received response notification: {notification.name()}")
-        print(f"Response userInfo: {notification.userInfo()}")
+        # This print is long due to image data
+        # print(f"Response userInfo: {notification.userInfo()}")
         if notification.userInfo():
             # Try multiple possible keys
-            response = (notification.userInfo().get('response') or 
-                       notification.userInfo().get('message') or 
-                       notification.userInfo().get('query'))
-            if response:
-                self.responses.append(response)
-                print(f"Response: {response}")
+            text_response = (notification.userInfo().get('response') or 
+                             notification.userInfo().get('message') or 
+                             notification.userInfo().get('query'))
+            image = notification.userInfo().get('image') # base64
+            if text_response or image:
+                if text_response:
+                    self.responses.append(text_response)
+                    print(f"Response: {text_response}")
+                if image and len(image):
+                    self.images.append(image)
             else:
                 print(f"No recognized response key in userInfo: {notification.userInfo()}")
 
@@ -78,7 +105,14 @@ class SimularBrowser:
 
     def send_message(self, message):
         center = NSDistributedNotificationCenter.defaultCenter()
-        user_info = {"message": message}
+        user_info = {
+            "message": message,
+            "anthropic_key": self.anthropic_key,
+            "planner_model": self.planner_model,
+            "planner_mode": self.planner_mode,
+            "allow_subtasks": self.allow_subtasks,
+            "max_parallelism": self.max_parallelism
+        }
         notification_name = self.bundle_id
         print(f"Sending message with notification name: {notification_name}")
         print(f"Message content: {user_info}")
@@ -89,11 +123,12 @@ class SimularBrowser:
         """Launch the app with arguments."""
         subprocess.run(["open", self.app_path, "--args", "--query", query])
 
-    def run(self, query, timeout=None):
+    def run(self, query, timeout=None, include_images=False):
         """Run query in Simular Browser app and wait for completion."""
         # Reset state
         self.completion_event.clear()
         self.responses = []
+        self.images = []
 
         if self.is_app_running(self.bundle_id):
             print("App is already running. Sending arguments to the running instance...")
@@ -118,7 +153,10 @@ class SimularBrowser:
         if self.completion_event.is_set():
             print("Completed successfully")
         
-        return self.responses
+        if include_images:  
+            return self.responses, self.images
+        else:
+            return self.responses
 
     def __del__(self):
         """Cleanup notification observers."""
