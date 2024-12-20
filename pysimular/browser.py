@@ -77,7 +77,7 @@ class SimularBrowser:
                              notification.userInfo().get('query'))
             image = notification.userInfo().get('image') # base64
             if text_response or image:
-                if text_response and len(text_response):
+                if text_response:
                     self.responses.append(text_response)
                     print(f"Response: {text_response}")
                 if image and len(image):
@@ -123,7 +123,7 @@ class SimularBrowser:
         """Launch the app with arguments."""
         subprocess.run(["open", self.app_path, "--args", "--query", query])
 
-    def run(self, query, timeout=None):
+    def run(self, query, timeout=None, include_images=False):
         """Run query in Simular Browser app and wait for completion."""
         # Reset state
         self.completion_event.clear()
@@ -153,7 +153,10 @@ class SimularBrowser:
         if self.completion_event.is_set():
             print("Completed successfully")
         
-        return self.responses, self.images
+        if include_images:  
+            return self.responses, self.images
+        else:
+            return self.responses
 
     def __del__(self):
         """Cleanup notification observers."""
