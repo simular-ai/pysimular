@@ -16,7 +16,8 @@ class SimularBrowser:
                  planner_model: str = 'claude-3-5-sonnet',
                  planner_mode: str = 'system_1_2',
                  allow_subtasks: bool = False,
-                 max_parallelism: int = 5):
+                 max_parallelism: int = 5,
+                 enable_vision: bool = False):
         """Browser interface for Simular app.
 
         Args:
@@ -26,6 +27,7 @@ class SimularBrowser:
             planner_mode (str, optional): Planning mode to use. Options: system_1, system_2, system_1_2, agent_s1
             allow_subtasks (bool, optional): Whether to allow subtask creation.
             max_parallelism (int, optional): Maximum number of parallel tasks.
+            enable_vision (bool, optional): Whether to enable vision.
         """
         self.app_path = path
         self.completion_event = threading.Event()
@@ -36,6 +38,7 @@ class SimularBrowser:
         self.planner_mode = planner_mode
         self.allow_subtasks = allow_subtasks
         self.max_parallelism = max_parallelism
+        self.enable_vision = enable_vision
         self._setup_notification_observers()
 
     def _setup_notification_observers(self):
@@ -111,7 +114,8 @@ class SimularBrowser:
             "planner_model": self.planner_model,
             "planner_mode": self.planner_mode,
             "allow_subtasks": self.allow_subtasks,
-            "max_parallelism": self.max_parallelism
+            "max_parallelism": self.max_parallelism,
+            "enable_vision": self.enable_vision
         }
         notification_name = self.bundle_id
         print(f"Sending message with notification name: {notification_name}")
