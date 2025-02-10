@@ -17,7 +17,8 @@ class SimularBrowser:
                  planner_mode: str = 'system_1_2',
                  allow_subtasks: bool = False,
                  max_parallelism: int = 5,
-                 enable_vision: bool = False):
+                 enable_vision: bool = False,
+                 max_steps: int = 200):
         """Browser interface for Simular app.
 
         Args:
@@ -39,6 +40,7 @@ class SimularBrowser:
         self.allow_subtasks = allow_subtasks
         self.max_parallelism = max_parallelism
         self.enable_vision = enable_vision
+        self.max_steps = max_steps
         self._setup_notification_observers()
 
     def _setup_notification_observers(self):
@@ -115,7 +117,8 @@ class SimularBrowser:
             "planner_mode": self.planner_mode,
             "allow_subtasks": self.allow_subtasks,
             "max_parallelism": self.max_parallelism,
-            "enable_vision": self.enable_vision
+            "enable_vision": self.enable_vision,
+            "max_steps": self.max_steps
         }
         notification_name = self.bundle_id
         print(f"Sending message with notification name: {notification_name}")
