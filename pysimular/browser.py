@@ -41,6 +41,7 @@ class SimularBrowser:
         self.max_parallelism = max_parallelism
         self.enable_vision = enable_vision
         self.max_steps = max_steps
+        self.info = {}
         self._setup_notification_observers()
 
     def _setup_notification_observers(self):
@@ -93,6 +94,13 @@ class SimularBrowser:
     def handleCompletion_(self, notification):
         """Handle completion signal from the app."""
         print("Received completion signal")
+
+        if notification.userInfo():
+            # info is a [str: any] dictionary
+            info = notification.userInfo().get('info')
+            print(f"Completed with info: {info}")
+            self.info = info
+                
         self.completion_event.set()
         # Stop the current run loop
         NSRunLoop.currentRunLoop().performSelector_target_argument_order_modes_(
@@ -130,7 +138,7 @@ class SimularBrowser:
         """Launch the app with arguments."""
         subprocess.run(["open", self.app_path, "--args", "--query", query])
 
-    def run(self, query, timeout=None, include_images=False):
+    def run(self, query, timeout=None) -> dict:
         """Run query in Simular Browser app and wait for completion."""
         # Reset state
         self.completion_event.clear()
@@ -159,11 +167,14 @@ class SimularBrowser:
         
         if self.completion_event.is_set():
             print("Completed successfully")
-        
-        if include_images:  
-            return self.responses, self.images
-        else:
-            return self.responses
+
+        output = {
+            "responses": self.responses,
+            "images": self.images,
+            "info": self.info
+        }
+
+        return output
 
     def __del__(self):
         """Cleanup notification observers."""
