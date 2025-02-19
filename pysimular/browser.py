@@ -18,7 +18,8 @@ class SimularBrowser:
                  allow_subtasks: bool = False,
                  max_parallelism: int = 5,
                  enable_vision: bool = False,
-                 max_steps: int = 200):
+                 max_steps: int = 200,
+                 internal_key: str = ''):
         """Browser interface for Simular app.
 
         Args:
@@ -42,6 +43,7 @@ class SimularBrowser:
         self.enable_vision = enable_vision
         self.max_steps = max_steps
         self.info = {}
+        self.internal_key = internal_key
         self._setup_notification_observers()
 
     def _setup_notification_observers(self):
@@ -182,3 +184,27 @@ class SimularBrowser:
         center = NSDistributedNotificationCenter.defaultCenter()
         center.removeObserver_(self)
 
+    #Some testing api for internal use
+    def open_new_tab(self):
+        center = NSDistributedNotificationCenter.defaultCenter()
+        info = {
+            "command": "open_new_tab",
+            "internal_key": self.internal_key
+        }
+        notification_name = self.bundle_id
+        print(f"Sending message with notification name: {notification_name}")
+        print(f"Message content: {info}")
+        center.postNotificationName_object_userInfo_deliverImmediately_(
+            notification_name, None, info, True)
+        
+    def record_trajectory(self):
+        center = NSDistributedNotificationCenter.defaultCenter()
+        info = {
+            "command": "record_trajectory",
+            "internal_key": self.internal_key
+        }
+        notification_name = self.bundle_id
+        print(f"Sending message with notification name: {notification_name}")
+        print(f"Message content: {info}")
+        center.postNotificationName_object_userInfo_deliverImmediately_(
+            notification_name, None, info, True)
