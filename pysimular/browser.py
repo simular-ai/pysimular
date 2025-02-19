@@ -84,12 +84,19 @@ class SimularBrowser:
                              notification.userInfo().get('message') or 
                              notification.userInfo().get('query'))
             image = notification.userInfo().get('image') # base64
-            if text_response or image:
+            trajectory = notification.userInfo().get('trajectory')
+            if text_response or image or trajectory:
                 if text_response:
                     self.responses.append(text_response)
-                    print(f"Response: {text_response}")
+                    # print(f"Response: {text_response}")
                 if image and len(image):
                     self.images.append(image)
+                if trajectory:
+                    if image and len(image):
+                        self.trajectory.append({"trajectory": trajectory, "image": image})
+                    else:
+                        self.trajectory.append({"trajectory": trajectory})
+                    
             else:
                 print(f"No recognized response key in userInfo: {notification.userInfo()}")
 
@@ -147,6 +154,7 @@ class SimularBrowser:
         self.completion_event.clear()
         self.responses = []
         self.images = []
+        self.trajectory = []
 
         if self.is_app_running(self.bundle_id):
             print("App is already running. Sending arguments to the running instance...")
@@ -174,7 +182,8 @@ class SimularBrowser:
         output = {
             "responses": self.responses,
             "images": self.images,
-            "info": self.info
+            "info": self.info,
+            "trajectory": self.trajectory
         }
 
         return output
