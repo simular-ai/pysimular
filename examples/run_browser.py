@@ -1,8 +1,15 @@
 from pysimular import SimularBrowser
+import asyncio
+async def main():
+    browser = SimularBrowser(
+        "/Users/chih-lunlee/Applications/SimularBrowser.app"
+    )
+    id = await browser.open_new_tab()
+    response = browser.run("hello!")
+    await browser.close_tab(id)
+    print(f"final response:")
+    for key in response:
+        print(f"  {key}: {response[key][:100]}")
 
-browser = SimularBrowser(
-    "/Users/angli/Library/Developer/Xcode/DerivedData/SimularBrowser-cxquyiratqxnoxfnmasbdrowrpim/Build/Products/Debug/SimularBrowser.app"
-)
-response = browser.run("hello how are you?")
-
-print(f"final response: {response}")
+if __name__ == "__main__":
+    asyncio.run(main())
