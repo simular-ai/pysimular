@@ -42,6 +42,7 @@ class SimularBrowser:
         self.enable_vision = enable_vision
         self.max_steps = max_steps
         self.info = {}
+        self.tabs = {}
         self._setup_notification_observers()
 
     def _setup_notification_observers(self):
@@ -181,4 +182,3 @@ class SimularBrowser:
         """Cleanup notification observers."""
         center = NSDistributedNotificationCenter.defaultCenter()
         center.removeObserver_(self)
-
