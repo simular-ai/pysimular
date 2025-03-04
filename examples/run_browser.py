@@ -18,7 +18,8 @@ async def main():
 async def test_async_browser(browser):
     tab = Tab(browser=browser)
     await tab.open()
-    await asyncio.sleep(2)
+    res = await tab.query("What is the capital of the moon?")
+    print(f"res: {res}")
     await tab.close()
 
 if __name__ == "__main__":

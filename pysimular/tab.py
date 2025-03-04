@@ -20,10 +20,16 @@ class Tab:
         self.responses = []
         self.images = []
         self.info = {}
+
         self.browser = browser
         self.bundle_id = browser.bundle_id
         self._setup_notification_observers()
         self._pending_requests = {}
+
+    def reset_storage(self):
+        self.responses = []
+        self.images = []
+        self.info = {}
 
     def _setup_notification_observers(self):
         center = NSDistributedNotificationCenter.defaultCenter()
@@ -86,7 +92,6 @@ class Tab:
         else:
             print(f"unable to find pending request with id: {request_id}")
 
-
     async def post(self, command, timeout=30.0, **kwargs):
         '''
         Posts a command to the browser.
@@ -148,3 +153,7 @@ class Tab:
             print(f"Error closing tab with id: {self.id}: {e}")
         return self.id
     
+    async def query(self, query, timeout=600.0):
+        self.reset_storage()
+        await self.post("query", timeout=timeout, query=query)
+        return self.responses
