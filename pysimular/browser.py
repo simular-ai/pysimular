@@ -1,8 +1,6 @@
 import subprocess
 import threading
 import time
-import uuid
-import asyncio
 from AppKit import NSWorkspace
 from Foundation import NSDistributedNotificationCenter
 from Foundation import NSRunLoop
@@ -44,7 +42,7 @@ class SimularBrowser:
         self.enable_vision = enable_vision
         self.max_steps = max_steps
         self.info = {}
-        self._pending_requests = {}
+        self.tabs = {}
         self._setup_notification_observers()
 
     def _setup_notification_observers(self):
@@ -52,10 +50,9 @@ class SimularBrowser:
         center = NSDistributedNotificationCenter.defaultCenter()
         
         response_name = f"{self.bundle_id}.response"
-        pending_request_name = f"{self.bundle_id}.pending_request"
         completion_name = f"{self.bundle_id}.completed"
         
-        print(f"Setting up observers for: {response_name}, {pending_request_name} and {completion_name}")
+        print(f"Setting up observers for: {response_name} and {completion_name}")
         
         # Observer for intermediate responses
         center.addObserver_selector_name_object_(
@@ -65,13 +62,6 @@ class SimularBrowser:
             None
         )
         
-        # Observer for pending request
-        center.addObserver_selector_name_object_(
-            self,
-            'handlePendingRequest:',
-            pending_request_name,
-            None
-        )
         # Observer for completion signal
         center.addObserver_selector_name_object_(
             self,
@@ -127,17 +117,6 @@ class SimularBrowser:
         running_apps = NSWorkspace.sharedWorkspace().runningApplications()
         return any(app.bundleIdentifier() == bundle_id for app in running_apps)
 
-    def handlePendingRequest_(self, notification):
-        print(f"Received pending request notification: {notification.name()}")
-        info = notification.userInfo()
-        if not info:
-            return
-
-        request_id = info.get('id')
-        if request_id in self._pending_requests:
-            future = self._pending_requests[request_id]
-            future.set_result(info)
-            
     def send_message(self, message, reset: bool = False):
         center = NSDistributedNotificationCenter.defaultCenter()
         user_info = {
@@ -160,60 +139,6 @@ class SimularBrowser:
     def launch_app(self, query):
         """Launch the app with arguments."""
         subprocess.run(["open", self.app_path, "--args", "--query", query])
-
-    async def post(self, command, id=None, timeout=30.0, **kwargs):
-        if not id:
-            print(f"No id provided for command: {command}")
-        request_id = id
-        future = asyncio.Future()
-        self._pending_requests[request_id] = future
-        center = NSDistributedNotificationCenter.defaultCenter()
-        try:
-            info = {
-                "command": command,
-                "request_id": request_id,
-                **kwargs
-            }
-            
-            center.postNotificationName_object_userInfo_deliverImmediately_(
-                self.bundle_id,
-                None,
-                info,
-                True
-            )
-            runloop = NSRunLoop.currentRunLoop()
-            start_time = time.time()
-            while not future.done():
-                # Run the loop for a short interval
-                until_date = NSDate.dateWithTimeIntervalSinceNow_(0.1)  # 100ms intervals
-                runloop.runUntilDate_(until_date)
-                if future.done():
-                    return future.result()
-                
-                if timeout and time.time() - start_time > timeout:
-                    print(f"Timeout after {timeout} seconds")
-                    break
-            
-            if future.done():
-                print("Completed successfully")
-            try:
-                return await asyncio.wait_for(future, timeout=timeout)
-            except asyncio.TimeoutError:
-                print(f"Timeout error: {asyncio.TimeoutError}")
-                return None
-        finally:
-            self._pending_requests.pop(request_id, None)
-
-    async def open_new_tab(self):
-        id = str(uuid.uuid4()) #Create an UUID for the communicator 
-        await self.post("open_new_tab", id=id, timeout=10.0)
-        print(f"Opened new tab with id: {id}")
-        return id
-    
-    async def close_tab(self, id):
-        res = await self.post("close_tab", id=id, timeout=10.0)
-        print(f"Closed tab with id: {id} and response: {res.get('response')}")
-        return id
 
     def run(self, query, timeout=None, reset: bool = False) -> dict:
         """Run query in Simular Browser app and wait for completion."""
@@ -257,4 +182,3 @@ class SimularBrowser:
         """Cleanup notification observers."""
         center = NSDistributedNotificationCenter.defaultCenter()
         center.removeObserver_(self)
-
