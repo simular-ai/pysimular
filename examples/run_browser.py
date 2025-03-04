@@ -6,19 +6,13 @@ async def main():
     browser = SimularBrowser(
         "/Users/chih-lunlee/Applications/SimularBrowser.app"
     )
-    # id = await browser.open_new_tab()
-    # response = await browser.run("hello!")
-    # await browser.close_tab(id)
-    # print(f"final response:")
-    # for key in response:
-    #     print(f"  {key}: {response[key][:100]}")
     tasks = [test_async_browser(browser) for _ in range(1)]
     await asyncio.gather(*tasks)
 
 async def test_async_browser(browser):
-    tab = Tab(browser=browser)
+    tab = Tab(browser=browser, verbose=False)
     await tab.open()
-    res = await tab.query("What is the capital of the moon?")
+    res = await tab.query("What is the capital of the moon?", model="claude-3-5-sonnet", planner_mode="system_1")
     print(f"res: {res}")
     await tab.close()
 

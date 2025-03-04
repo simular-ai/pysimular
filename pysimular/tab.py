@@ -11,7 +11,7 @@ from .browser import SimularBrowser
 
 class Tab:
 
-    def __init__(self, browser: 'SimularBrowser', id: str = None):
+    def __init__(self, browser: 'SimularBrowser', id: str = None, verbose: bool = False):
         if not id:
             self.id = str(uuid.uuid4())
         else:
@@ -20,7 +20,7 @@ class Tab:
         self.responses = []
         self.images = []
         self.info = {}
-
+        self.verbose = verbose
         self.browser = browser
         self.bundle_id = browser.bundle_id
         self._setup_notification_observers()
@@ -56,41 +56,45 @@ class Tab:
         Handles tab notifications from the browser.
         when browser sends a notification, we add the response to the tab
         '''
-        print(f"Received tab request: {notification}")
-        info = notification.userInfo()
+        info = notification.userInfo().get('info')
         if not info:
             return
-    
-        text_response = (notification.userInfo().get('response') or 
-                            notification.userInfo().get('message') or 
-                            notification.userInfo().get('query'))
-        image = notification.userInfo().get('image') # base64
+        
+        if self.verbose:
+            print(f"Received tab request with info {info}")
+        text_response = (info.get('response') or 
+                         info.get('message') or 
+                         info.get('query'))
+        image = info.get('image') # base64
         if text_response:
             self.responses.append(text_response)
-            print(f"Response: {text_response}")
+            if self.verbose:
+                print(f"Response: {text_response}")
         if image and len(image):
             self.images.append(image)
-            print("added image to tab")
-        else:
-            print(f"No recognized response key in userInfo: {notification.userInfo()}")
+            if self.verbose:
+                print("added image to tab")
                 
     def handleTabCompletion_(self, notification):
         '''
         Handles tab completion notifications from the browser.
         when browser sends a completion, we find the pending request and pop that event in the pending requests
         '''
-        print(f"Received tab completion: {notification}")
-        info = notification.userInfo()
-        request_id = info.get('request_id', None)
-        if not info or not request_id:
-            print(f"No recognized request id in userInfo: {notification.userInfo()}")
+        if self.verbose:
+            print(f"Received tab completion: {notification}")
+        info = notification.userInfo().get('info', {})
+        request_id = notification.userInfo().get('request_id', None)
+        if not request_id:
+            print(f"empty request id during handling tab completion")
+            if self.verbose:
+                print(f"userInfo: {notification.userInfo()}")
             return
 
         if request_id in self._pending_requests:
             future = self._pending_requests[request_id]
             future.set_result(info)
         else:
-            print(f"unable to find pending request with id: {request_id}")
+            print(f"unable to find pending request with id: {request_id} during handling tab completion")
 
     async def post(self, command, timeout=30.0, **kwargs):
         '''
@@ -108,8 +112,8 @@ class Tab:
                 "tab_id": self.id,
                 **kwargs
             }
-
-            print(f"Sending command: {command}")
+            if self.verbose:
+                print(f"Sending command: {command}")
             center.postNotificationName_object_userInfo_deliverImmediately_(
                 self.bundle_id,
                 None,
@@ -126,7 +130,8 @@ class Tab:
                     return future.result()
                 
                 if timeout and time.time() - start_time > timeout:
-                    print(f"Timeout after {timeout} seconds")
+                    if self.verbose:
+                        print(f"Timeout after {timeout} seconds")
                     break
             
             if future.done():
@@ -153,7 +158,34 @@ class Tab:
             print(f"Error closing tab with id: {self.id}: {e}")
         return self.id
     
-    async def query(self, query, timeout=600.0):
+    async def query(self, 
+                    query, 
+                    model: str = 'claude-3-5-sonnet',
+                    planner_mode: str = 'system_1_2',
+                    allow_subtasks: bool = False,
+                    max_parallelism: int = 3,
+                    enable_vision: bool = False,
+                    max_steps: int = 100,
+                    timeout=600.0):
         self.reset_storage()
-        await self.post("query", timeout=timeout, query=query)
+
+        avaliable_models = ['claude-3-5-sonnet']
+        if model not in avaliable_models:
+            raise ValueError(f"Invalid model: {model}. Avaliable models: {avaliable_models}")
+        
+        avaliable_planner_modes = ['system_1', 'system_2', 'system_1_2', 'agent_s1']
+        if planner_mode not in avaliable_planner_modes:
+            raise ValueError(f"Invalid planner mode: {planner_mode}. Avaliable planner modes: {avaliable_planner_modes}")
+        
+        kwargs = {
+            'timeout': timeout,
+            'query': query,
+            'model': model, 
+            'planner_mode': planner_mode,
+            'allow_subtasks': allow_subtasks,
+            'max_parallelism': max_parallelism,
+            'enable_vision': enable_vision,
+            'max_steps': max_steps
+        }
+        await self.post("query", **kwargs)
         return self.responses
