@@ -105,45 +105,35 @@ class Tab:
         future = asyncio.Future()
         self._pending_requests[request_id] = future
         center = NSDistributedNotificationCenter.defaultCenter()
-        try:
-            info = {
-                "command": command,
-                "request_id": request_id,
-                "tab_id": self.id,
-                **kwargs
-            }
-            if self.verbose:
-                print(f"Sending command: {command}")
-            center.postNotificationName_object_userInfo_deliverImmediately_(
-                self.bundle_id,
-                None,
-                info,
-                True
-            )
-
-            runloop = NSRunLoop.currentRunLoop()
-            start_time = time.time()
-            while not future.done():
-                until_date = NSDate.dateWithTimeIntervalSinceNow_(0.1)  # 100ms intervals
-                runloop.runUntilDate_(until_date)
-                if future.done():
-                    return future.result()
-                
-                if timeout and time.time() - start_time > timeout:
-                    if self.verbose:
-                        print(f"Timeout after {timeout} seconds")
-                    break
-            
+        info = {
+            "command": command,
+            "request_id": request_id,
+            "tab_id": self.id,
+            **kwargs
+        }
+        if self.verbose:
+            print(f"Sending command: {command}")
+        center.postNotificationName_object_userInfo_deliverImmediately_(
+            self.bundle_id,
+            None,
+            info,
+            True
+        )
+        runloop = NSRunLoop.currentRunLoop()
+        start_time = time.time()
+        while not future.done():
+            until_date = NSDate.dateWithTimeIntervalSinceNow_(0.1)
+            runloop.runUntilDate_(until_date)
+            await asyncio.sleep(0.1) # add a delay to avoid busy-waiting
             if future.done():
-                print("Completed successfully")
-            try:
-                return await asyncio.wait_for(future, timeout=timeout)
-            except asyncio.TimeoutError:
-                print(f"Timeout error: {asyncio.TimeoutError}")
+                self._pending_requests.pop(request_id, None)
+                return future.result()
+
+            if timeout and time.time() - start_time > timeout:
+                if self.verbose:
+                    print(f"Timeout after {timeout} seconds")
                 self._pending_requests.pop(request_id, None)
                 return None
-        finally:
-            self._pending_requests.pop(request_id, None)
 
     async def open(self, timeout=30.0):
         await self.post("open_tab", timeout=timeout)
