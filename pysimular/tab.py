@@ -171,6 +171,7 @@ class Tab:
             'timeout': timeout,
             'query': query,
             'model': model, 
+            'anthropic_key': self.browser.anthropic_key,
             'planner_mode': planner_mode,
             'allow_subtasks': allow_subtasks,
             'max_parallelism': max_parallelism,

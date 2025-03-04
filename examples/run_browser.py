@@ -13,8 +13,8 @@ async def main():
 async def test_async_browser(browser):
     tab = Tab(browser=browser, verbose=False)
     await tab.open()
-    res = await tab.query("What is the capital of the moon?", model="claude-3-5-sonnet", planner_mode="system_1")
-    # print(f"res: {res}")
+    res = await tab.query("Search for the capital of the moon?", model="claude-3-5-sonnet", planner_mode="agent_s1")
+    print(f"res: {res}")
     await tab.close()
 
 if __name__ == "__main__":
