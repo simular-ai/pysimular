@@ -42,6 +42,7 @@ class SimularBrowser:
         self.enable_vision = enable_vision
         self.max_steps = max_steps
         self.info = {}
+        self.tabs = {}
         self._setup_notification_observers()
 
     def _setup_notification_observers(self):
@@ -51,7 +52,7 @@ class SimularBrowser:
         response_name = f"{self.bundle_id}.response"
         completion_name = f"{self.bundle_id}.completed"
         
-        print(f"Setting up observers for: {response_name} and {completion_name}")
+        # print(f"Setting up observers for: {response_name} and {completion_name}")
         
         # Observer for intermediate responses
         center.addObserver_selector_name_object_(
@@ -73,7 +74,7 @@ class SimularBrowser:
 
     def handleResponse_(self, notification):
         """Handle intermediate responses from the app."""
-        print(f"Received response notification: {notification.name()}")
+        # print(f"Received response notification: {notification.name()}")
         # This print is long due to image data
         # print(f"Response userInfo: {notification.userInfo()}")
         if notification.userInfo():
@@ -85,7 +86,7 @@ class SimularBrowser:
             if text_response or image:
                 if text_response:
                     self.responses.append(text_response)
-                    print(f"Response: {text_response}")
+                    # print(f"Response: {text_response}")
                 if image and len(image):
                     self.images.append(image)
             else:
@@ -98,7 +99,6 @@ class SimularBrowser:
         if notification.userInfo():
             # info is a [str: any] dictionary
             info = notification.userInfo().get('info')
-            print(f"Completed with info: {info}")
             self.info = info
                 
         self.completion_event.set()
@@ -130,8 +130,8 @@ class SimularBrowser:
             "reset": reset
         }
         notification_name = self.bundle_id
-        print(f"Sending message with notification name: {notification_name}")
-        print(f"Message content: {user_info}")
+        # print(f"Sending message with notification name: {notification_name}")
+        print(f"Sending message with content: {user_info}")
         center.postNotificationName_object_userInfo_deliverImmediately_(
             notification_name, None, user_info, True)
 
@@ -181,4 +181,3 @@ class SimularBrowser:
         """Cleanup notification observers."""
         center = NSDistributedNotificationCenter.defaultCenter()
         center.removeObserver_(self)
-

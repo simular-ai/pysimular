@@ -1,8 +1,21 @@
 from pysimular import SimularBrowser
+import asyncio
+from pysimular.tab import Tab
 
-browser = SimularBrowser(
-    "/Users/angli/Library/Developer/Xcode/DerivedData/SimularBrowser-cxquyiratqxnoxfnmasbdrowrpim/Build/Products/Debug/SimularBrowser.app"
-)
-response = browser.run("hello how are you?")
+async def main():
+    browser = SimularBrowser(
+        "/Users/chih-lunlee/Applications/SimularBrowser.app"
+    )
+    # Run 3 parallel tasks
+    tasks = [test_async_browser(browser) for _ in range(3)]
+    await asyncio.gather(*tasks)
 
-print(f"final response: {response}")
+async def test_async_browser(browser):
+    tab = Tab(browser=browser, verbose=False)
+    await tab.open()
+    res = await tab.query("Search for the capital of the moon?", model="claude-3-5-sonnet", planner_mode="agent_s1")
+    print(f"res: {res}")
+    await tab.close()
+
+if __name__ == "__main__":
+    asyncio.run(main())
