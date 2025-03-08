@@ -19,6 +19,9 @@ browser = SimularBrowser("your-simular-browser-app-path")
 browser.run("your-message")
 ```
 
+### Usage
+Check out complete documentation: https://docs.simular.ai/
+
 ## License
 
 This project is licensed under the Apache License - see the LICENSE file for details.
