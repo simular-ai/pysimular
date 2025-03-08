@@ -2,8 +2,9 @@ from setuptools import setup, find_packages
 
 setup(
     name="pysimular",
-    version="0.1.1",
+    version="0.1.2",
     packages=find_packages(),
+    license_files=["LICENSE"],
     install_requires=["requests>=2.25.1", "aiohttp>=3.8.0", "pyobjc"],
     author="Simular",
     author_email="support@simular.ai",
