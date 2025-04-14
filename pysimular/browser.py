@@ -13,6 +13,7 @@ class SimularBrowser:
     def __init__(self,
                  path: str,
                  anthropic_key: str = '',
+                 api_keys: dict[str, str] = {},
                  planner_model: str = 'claude-3-5-sonnet',
                  planner_mode: str = 'system_1_2',
                  allow_subtasks: bool = False,
@@ -23,7 +24,9 @@ class SimularBrowser:
 
         Args:
             path (str): Path to the SimularBrowser application
-            anthropic_key (str, optional): Anthropic API key.
+            anthropic_key (str, optional): Anthropic API key (deprecating, use api_keys instead)
+            api_keys (dict[str, str], optional): A map from API provider name to API key, 
+                e.g. {'anthropic': <anthropic_key>, "google": <google_api_key>, "openai": <openai_api_key>}
             planner_model (str, optional): Model to use for planning.
             planner_mode (str, optional): Planning mode to use. Options: system_1, system_2, system_1_2, agent_s1
             allow_subtasks (bool, optional): Whether to allow subtask creation.
@@ -35,6 +38,10 @@ class SimularBrowser:
         self.responses = []
         self.images = [] # base64 string
         self.anthropic_key = anthropic_key
+        self.api_keys = api_keys
+        # Backwards compatibility. Will be removed.
+        if anthropic_key:
+            self.api_keys['anthropic'] = anthropic_key
         self.planner_model = planner_model
         self.planner_mode = planner_mode
         self.allow_subtasks = allow_subtasks
@@ -121,6 +128,7 @@ class SimularBrowser:
         user_info = {
             "message": message,
             "anthropic_key": self.anthropic_key,
+            "api_keys": self.api_keys,
             "planner_model": self.planner_model,
             "planner_mode": self.planner_mode,
             "allow_subtasks": self.allow_subtasks,

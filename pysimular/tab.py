@@ -172,6 +172,7 @@ class Tab:
             'query': query,
             'model': model, 
             'anthropic_key': self.browser.anthropic_key,
+            'api_keys': self.browser.api_keys,
             'planner_mode': planner_mode,
             'allow_subtasks': allow_subtasks,
             'max_parallelism': max_parallelism,
