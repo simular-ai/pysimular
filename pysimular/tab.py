@@ -157,9 +157,9 @@ class Tab:
                     timeout=600.0):
         self.reset_storage()
         
-        avaliable_planner_modes = ['s0', 's1']
-        if planner_mode not in avaliable_planner_modes:
-            raise ValueError(f"Invalid planner mode: {planner_mode}. Avaliable planner modes: {avaliable_planner_modes}")
+        available_planner_modes = ['s0', 's1']
+        if planner_mode not in available_planner_modes:
+            raise ValueError(f"Invalid planner mode: {planner_mode}. Avaliable planner modes: {available_planner_modes}")
         
         kwargs = {
             'timeout': timeout,
