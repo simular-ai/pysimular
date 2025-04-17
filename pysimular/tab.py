@@ -150,32 +150,23 @@ class Tab:
     
     async def query(self, 
                     query, 
-                    model: str = 'claude-3-5-sonnet',
-                    planner_mode: str = 'system_1_2',
-                    allow_subtasks: bool = False,
+                    planner_mode: str = 's0',
+                    allow_parallel_browsing: bool = False,
                     max_parallelism: int = 3,
-                    enable_vision: bool = False,
                     max_steps: int = 100,
                     timeout=600.0):
         self.reset_storage()
-
-        avaliable_models = ['claude-3-5-sonnet']
-        if model not in avaliable_models:
-            raise ValueError(f"Invalid model: {model}. Avaliable models: {avaliable_models}")
         
-        avaliable_planner_modes = ['system_1', 'system_2', 'system_1_2', 'agent_s1']
-        if planner_mode not in avaliable_planner_modes:
-            raise ValueError(f"Invalid planner mode: {planner_mode}. Avaliable planner modes: {avaliable_planner_modes}")
+        available_planner_modes = ['s0', 's1']
+        if planner_mode not in available_planner_modes:
+            raise ValueError(f"Invalid planner mode: {planner_mode}. Avaliable planner modes: {available_planner_modes}")
         
         kwargs = {
             'timeout': timeout,
             'query': query,
-            'model': model, 
-            'anthropic_key': self.browser.anthropic_key,
             'planner_mode': planner_mode,
-            'allow_subtasks': allow_subtasks,
+            'allow_parallel_browsing': allow_parallel_browsing,
             'max_parallelism': max_parallelism,
-            'enable_vision': enable_vision,
             'max_steps': max_steps
         }
         await self.post("query", **kwargs)
