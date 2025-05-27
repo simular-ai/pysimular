@@ -16,8 +16,7 @@ class SimularBrowser:
                  allow_parallel_browsing: bool = False,
                  max_parallelism: int = 5,
                  max_steps: int = 200,
-                 allow_replan: bool = True,
-                 test_env: str = 'production'):
+                 allow_replan: bool = True):
         """Browser interface for Simular app.
 
         Args:
@@ -27,7 +26,6 @@ class SimularBrowser:
             max_parallelism (int, optional): Maximum number of parallel browser tabs.
             max_steps (int, optional): Maximum number of agent steps.
             allow_replan (bool, optional): Whether to allow replanning.
-            test_env (str, optional): test environment to use, options: 'production', 'staging', 'local'.
         """
         self.app_path = path
         self.completion_event = threading.Event()
@@ -41,7 +39,6 @@ class SimularBrowser:
         self.tabs = {}
         self._setup_notification_observers()
         self.allow_replan = allow_replan
-        self.test_env = test_env
 
     def _setup_notification_observers(self):
         """Setup observers for app responses and completion signal."""
@@ -123,8 +120,7 @@ class SimularBrowser:
             "max_parallelism": self.max_parallelism,
             "max_steps": self.max_steps,
             "reset": reset,
-            "allow_replan": self.allow_replan,
-            "test_env": self.test_env
+            "allow_replan": self.allow_replan
         }
         notification_name = self.bundle_id
         # print(f"Sending message with notification name: {notification_name}")

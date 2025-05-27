@@ -155,7 +155,6 @@ class Tab:
                     max_parallelism: int = None,
                     max_steps: int = None,
                     allow_replan: bool = None,
-                    test_env: str = None,
                     timeout=600.0):
         self.reset_storage()
         
@@ -170,8 +169,6 @@ class Tab:
             max_steps = self.browser.max_steps
         if allow_replan is None:
             allow_replan = self.browser.allow_replan
-        if test_env is None:
-            test_env = self.browser.test_env
         
         available_planner_modes = ['s0', 's1']
         if planner_mode not in available_planner_modes:
@@ -184,8 +181,7 @@ class Tab:
             'allow_parallel_browsing': allow_parallel_browsing,
             'max_parallelism': max_parallelism,
             'max_steps': max_steps,
-            'allow_replan': allow_replan,
-            'test_env': test_env
+            'allow_replan': allow_replan
         }
         await self.post("query", **kwargs)
         output = {
