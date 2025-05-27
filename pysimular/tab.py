@@ -150,12 +150,25 @@ class Tab:
     
     async def query(self, 
                     query, 
-                    planner_mode: str = 's0',
-                    allow_parallel_browsing: bool = False,
-                    max_parallelism: int = 3,
-                    max_steps: int = 100,
+                    planner_mode: str = None,
+                    allow_parallel_browsing: bool = None,
+                    max_parallelism: int = None,
+                    max_steps: int = None,
+                    allow_replan: bool = None,
                     timeout=600.0):
         self.reset_storage()
+        
+        # Set default values from browser if not provided
+        if planner_mode is None:
+            planner_mode = self.browser.planner_mode
+        if allow_parallel_browsing is None:
+            allow_parallel_browsing = self.browser.allow_parallel_browsing
+        if max_parallelism is None:
+            max_parallelism = self.browser.max_parallelism
+        if max_steps is None:
+            max_steps = self.browser.max_steps
+        if allow_replan is None:
+            allow_replan = self.browser.allow_replan
         
         available_planner_modes = ['s0', 's1']
         if planner_mode not in available_planner_modes:
@@ -167,7 +180,13 @@ class Tab:
             'planner_mode': planner_mode,
             'allow_parallel_browsing': allow_parallel_browsing,
             'max_parallelism': max_parallelism,
-            'max_steps': max_steps
+            'max_steps': max_steps,
+            'allow_replan': allow_replan
         }
         await self.post("query", **kwargs)
-        return self.responses
+        output = {
+            "responses": self.responses,
+            "images": self.images,
+            "info": self.info
+        }
+        return output
