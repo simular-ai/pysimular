@@ -172,7 +172,7 @@ class Tab:
         
         available_planner_modes = ['s0', 's1']
         if planner_mode not in available_planner_modes:
-            raise ValueError(f"Invalid planner mode: {planner_mode}. Avaliable planner modes: {available_planner_modes}")
+            raise ValueError(f"Invalid planner mode: {planner_mode}. Available planner modes: {available_planner_modes}")
         
         kwargs = {
             'timeout': timeout,
